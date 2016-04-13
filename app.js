@@ -1,5 +1,4 @@
 var express = require('express');
-var async = require('async')
 var path = require('path');
 var http = require('http');
 var favicon = require('serve-favicon');
@@ -9,7 +8,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 var config = require('./config');
-var signedCookieParser = cookieParser(config.cookieSecret)
+var sharedsession = require("express-socket.io-session");
 var socket = require('socket.io');
 
 //用Mongo来存储session
@@ -35,14 +34,15 @@ var store = new MongoStore({
     url: 'mongodb://localhost:27017/nachat',
     collection: 'sessions'
 });
-app.use(session({
+var sessionStore = session({
     secret: config.cookieSecret,
     key: config.key,
     store: store,
     cookie: {maxAge: 1000 * 60 * 60 },//
     resave: true,
     saveUninitialized: true
-}));
+});
+app.use(sessionStore);
 
 
 app.use('/api', apis);
@@ -112,52 +112,8 @@ var io = socket.listen(server);
 /**
  * socket.io 认证
  * */
-//设置socket的session验证
-/*io.use(function (socket,next) {
-    //parseCookie会解析socket.request.headers.cookie并赋值给执行socket.request.cookies
-    signedCookieParser(socket.request, null, function(err) {
-        if (err) {
-            console.log("err parse");
-            return next(new Error("cookie err"));
-        }
-        // cookie中获取sessionId
-        var connect_sid = socket.request.cookies['connect_sid'];
-        if (connect_sid) {
-            //通过cookie中保存的session的id获取到服务器端对应的session
-            store.get(connect_sid, function(error, session){
-                if (error) {
-                    return next(new Error('Authentication error'));
-                }
-                else {
-                    // save the session data and accept the connection
-                    socket.request.session = session;
-                    next();
-                }
-            });
-        }
-    });
+io.use(sharedsession(sessionStore));
 
-});*/
-/*io.set('authorization',function (handshakeData, accept) {
-    signedCookieParser(handshakeData, {}, function(err) {
-        if (err) {
-            accept(err, false)
-        } else {
-            store.get(handshakeData.signedCookies['connect.sid'], function(err, session) {
-                if (err) {
-                    accept(err.message, false)
-                } else {
-                    handshakeData.session = session;
-                    if (session._userId) {
-                        accept(null, true)
-                    } else {
-                        accept('No login')
-                    }
-                }
-            })
-        }
-    })
-});*/
 /**
  *  socket.io 绑定到服务器上，
  *  于是任何连接到该服务器的客户端都具备了实时通信功能
@@ -169,7 +125,7 @@ var Message = require('./models/message');
 var messages = [];
 io.sockets.on('connection', function (socket) {
 
-    /*var _userId = socket.handshake.session._userId;
+    var _userId = socket.handshake.session._userId;
     User.online(_userId,function (err,user) {
         if (err){
             socket.emit('err',{
@@ -178,7 +134,7 @@ io.sockets.on('connection', function (socket) {
         }else {
             socket.broadcast.emit('online',user);
         }
-    });*/
+    });
     
     /*socket.on('disconnect',function () {
         User.offline(_userId,function (err,user) {
