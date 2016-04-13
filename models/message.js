@@ -32,7 +32,6 @@ Message.prototype.save = function (callback) {
     var message = {
         content:this.content,
         creator : this.creator,
-        createAt: new Date()
     };
 
     var newMessage = new messageModel(message);

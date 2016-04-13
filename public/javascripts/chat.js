@@ -1,8 +1,10 @@
 /**
  * Created by Freeman on 2016/4/12.
  */
-angular.module('NAChat',['ngRoute']).
+angular.module('NAChat',['ngRoute','angularMoment']).
         run(function ($window, $rootScope, $http, $location) {
+
+    $window.moment.locale('zh-cn');
     $http({
         url: '/api/validate',
         method: 'GET'
