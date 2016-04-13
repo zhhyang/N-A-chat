@@ -18,6 +18,8 @@
     "gravatar" :"1.5.2",
     "express-session": "^1.13.0",
     "connect-mongo": "^1.1.0",
-    "connect":"*"
+    "mongodb": "*",
+    "connect":"*",
+    "express-socket.io-session":"*"
   }
 }
