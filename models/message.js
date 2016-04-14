@@ -14,6 +14,7 @@ var MessageSchema = new Schema({
         avatarUrl: String
 
     },
+    _roomId: ObjectId,
     createAt:{type: Date, default: Date.now},
 },{
     collection: 'messages'
@@ -42,6 +43,15 @@ Message.prototype.save = function (callback) {
         }
         callback(null,message);
     })
+};
+
+Message.findAll = function (callback) {
+    messageModel.find({},null,{
+        sort: {
+            'createAt': -1
+        },
+        limit: 20
+    },callback);
 };
 
 module.exports = Message;

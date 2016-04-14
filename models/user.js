@@ -4,11 +4,13 @@
 var mongoosedb = require('./mongoosedb');
 var Schema = mongoosedb.mongoose.Schema;
 var ObjectID = require('mongodb').ObjectID;
+var ObjectId = Schema.ObjectId;
 
 var UserSchema = new Schema({
     email: String,
     name: String,
     avatarUrl: String,
+    _roomId: ObjectId,
     online:Boolean,
 },{
     collection: 'users'
@@ -87,6 +89,20 @@ User.getOnlineUsers = function(callback) {
     userModel.find({
         "online": true
     }, callback)
+};
+
+User.find = function(_roomId,callback) {
+
+    userModel.find({
+        _roomId: _roomId,
+        online: true
+    }, function (err, users) {
+        if (err) {
+            callback(err);
+        } else {
+            callback(null, users)
+        }
+    })
 };
 
 module.exports = User;
