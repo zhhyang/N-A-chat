@@ -11,7 +11,7 @@ angular.module('NAChat').controller('LoginCtrl',function ($scope,$http,$location
             }
         }).success(function (user) {
             $scope.$emit('login', user);
-            $location.path('/')
+            $location.path('/rooms')
         }).error(function (data) {
             $location.path('/login')
         })

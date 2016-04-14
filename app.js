@@ -123,6 +123,7 @@ io.use(sharedsession(sessionStore));
 
 var User = require('./models/user');
 var Message = require('./models/message');
+var Room  = require('./models/room');
 var messages = [];
 io.sockets.on('connection', function (socket) {
 
@@ -148,6 +149,33 @@ io.sockets.on('connection', function (socket) {
             }
         })
     });
+    /**
+     * 创建新房间
+     * */
+    socket.on('createRoom', function (name) {
+        var newRoom = new Room(name);
+        newRoom.save(function (err, room) {
+            if (err) {
+                socket.emit('err', {msg: err})
+            } else {
+                io.sockets.emit('roomAdded', room)
+            }
+        })
+    });
+    /**
+     * 
+     * */
+    socket.on('getAllRooms', function () {
+        Room.findAll(function (err, rooms) {
+            if (err) {
+                socket.emit('err', {msg: err})
+            } else {
+                socket.emit('roomsData', rooms)
+            }
+        })
+    });
+
+
 
     socket.on('getRoom', function () {
         async.parallel([

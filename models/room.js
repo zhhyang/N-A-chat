@@ -1,6 +1,10 @@
 /**
  * Created by freeman on 16-4-14.
  */
+
+"use strict";
+
+
 var User = require('./user');
 var async = require('async');
 var mongoosedb = require('./mongoosedb');

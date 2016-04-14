@@ -10,7 +10,7 @@ angular.module('NAChat',['ngRoute','angularMoment']).
         method: 'GET'
     }).success(function (user) {
         $rootScope.me = user;
-        $location.path('/');
+        $location.path('/rooms');
     }).error(function (data) {
         $location.path('/login');
     });
