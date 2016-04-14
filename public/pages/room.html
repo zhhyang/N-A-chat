@@ -5,7 +5,7 @@
             <div class="list-group messages" auto-scroll-to-bottom>
                 <div class="list-group-item message" ng-repeat="message in room.messages">
                     <img ng-src="{{message.creator.avatarUrl}}" title="{{message.creator.name}}" class="img-rounded"/>
-                    {{message.creator.name}} : {{message.content}}<time am-time-ago="message.createAt"></time>
+                    {{message.creator.name}} : {{message.content}}   <span class="badge"><time am-time-ago="message.createAt"></time></span>
 
 
                 </div>
