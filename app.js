@@ -10,6 +10,7 @@ var session = require('express-session');
 var config = require('./config');
 var sharedsession = require("express-socket.io-session");
 var socket = require('socket.io');
+var async = require('async');
 
 //用Mongo来存储session
 var MongoStore = require('connect-mongo')(session);
@@ -149,13 +150,22 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('getRoom', function () {
-        User.getOnlineUsers(function (err,users) {
+        async.parallel([
+            function(done) {
+                User.getOnlineUsers(done)
+            },
+            function(done) {
+                Message.findAll(done)
+            }
+        ],function (err,results) {
             if (err) {
-                socket.emit('err', {msg: err})
+                socket.emit('err', {msg: err});
             } else {
-                socket.emit('roomData', {users: users, messages: messages})
+                socket.emit('roomData', {users: results[0], messages: results[1]});
             }
         });
+
+
     });
     socket.on('createMessage', function (message) {
 

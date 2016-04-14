@@ -20,6 +20,7 @@
     "connect-mongo": "^1.1.0",
     "mongodb": "*",
     "connect":"*",
-    "express-socket.io-session":"*"
+    "express-socket.io-session":"*",
+    "async":"*"
   }
 }
