@@ -136,7 +136,7 @@ io.sockets.on('connection', function (socket) {
         }
     });
     
-    /*socket.on('disconnect',function () {
+    socket.on('disconnect',function () {
         User.offline(_userId,function (err,user) {
             if (err) {
                 socket.emit('err', {
@@ -146,7 +146,7 @@ io.sockets.on('connection', function (socket) {
                 socket.broadcast.emit('offline', user)
             }
         })
-    });*/
+    });
 
     socket.on('getRoom', function () {
         User.getOnlineUsers(function (err,users) {
@@ -162,7 +162,7 @@ io.sockets.on('connection', function (socket) {
        var newMessage = new Message(message);
         newMessage.save(function (err,result) {
             if(err){
-
+                socket.emit('err', {msg: err});
             }else {
                 io.sockets.emit('messageAdded', result);
             }

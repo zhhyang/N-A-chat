@@ -12,7 +12,7 @@ angular.module('NAChat').controller('RoomCtrl',function ($scope,socket) {
     });
 
     socket.on('online', function (user) {
-        $scope.room.users.push(user)
+        $scope.room.users.push(user);
     });
     socket.on('offline', function (user) {
         var _userId = user._id;
