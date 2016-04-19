@@ -105,4 +105,25 @@ User.find = function(_roomId,callback) {
     })
 };
 
+User.joinRoom = function (join,callback) {
+    userModel.findOneAndUpdate({
+        _id : join.user._id
+    },{
+        $set:{
+            online:true,
+            _roomId :join.room._id
+        }
+    },callback)
+};
+
+User.leaveRoom = function (userId,callback) {
+    userModel.findOneAndUpdate({
+        _id : userId
+    },{
+        $set:{
+            online: true,
+            _roomId: null
+        }
+    },callback)
+};
 module.exports = User;

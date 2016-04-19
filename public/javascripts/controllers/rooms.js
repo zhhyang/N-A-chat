@@ -1,7 +1,7 @@
 /**
  * Created by Freeman on 2016/4/14.
  */
-angular.module('NAChat').controller('RoomsCtrl',function ($scope,socket) {
+angular.module('NAChat').controller('RoomsCtrl',function ($scope,$location,socket) {
 
     socket.emit('getAllRooms')
     socket.on('roomsData', function (rooms) {
@@ -20,9 +20,27 @@ angular.module('NAChat').controller('RoomsCtrl',function ($scope,socket) {
     $scope.createRoom = function () {
         var name = $scope.searchKey;
         socket.emit('createRoom',name);
-    }
+    };
     socket.on('roomAdded', function (room) {
         $scope._rooms.push(room)
         $scope.searchRoom()
+    });
+
+
+    $scope.enterRoom = function (room) {
+        socket.emit('joinRoom',{
+            user:$scope.me,
+            room:room
+        })
+    };
+    socket.on('joinRoom.' + $scope.me._id, function (join) {
+        $location.path('/rooms/' + join.room._id)
+    });
+    socket.on('joinRoom', function (join) {
+        $scope.rooms.forEach(function (room) {
+            if (room._id == join.room._id) {
+                room.users.push(join.user)
+            }
+        })
     })
 });

@@ -125,6 +125,12 @@ var User = require('./models/user');
 var Message = require('./models/message');
 var Room  = require('./models/room');
 var messages = [];
+var ObjectId = require('mongoose').Schema.ObjectId;
+var SYSTEM = {
+    name: 'technode机器人',
+    avatarUrl: 'http://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Robot_icon.svg/220px-Robot_icon.svg.png'
+}
+
 io.sockets.on('connection', function (socket) {
 
     var _userId = socket.handshake.session._userId;
@@ -145,7 +151,17 @@ io.sockets.on('connection', function (socket) {
                     mesg: err
                 })
             } else {
-                socket.broadcast.emit('offline', user)
+                if (user._roomId){
+                    socket.in(user._roomId).broadcast.emit('leaveRoom', user)
+                    socket.in(user._roomId).broadcast.emit('messageAdded', {
+                        content: user.name + '离开了聊天室',
+                        creator: SYSTEM,
+                        createAt: new Date(),
+                        _id: ObjectId()
+                    });
+                    User.leaveRoom(user._id,function () { })
+                }
+                socket.emit('offline',user);
             }
         })
     });
@@ -165,14 +181,26 @@ io.sockets.on('connection', function (socket) {
     /**
      * 
      * */
-    socket.on('getAllRooms', function () {
-        Room.findAll(function (err, rooms) {
-            if (err) {
-                socket.emit('err', {msg: err})
-            } else {
-                socket.emit('roomsData', rooms)
-            }
-        })
+    socket.on('getAllRooms', function (data) {
+        if (data && data._roomId){
+            Room.getById(data._roomId,function (err,room) {
+                if (err) {
+                    socket.emit('err', {
+                        msg: err
+                    })
+                } else {
+                    socket.emit('roomData.' + data._roomId, room)
+                }
+            })
+        }else {
+            Room.findAll(function (err, rooms) {
+                if (err) {
+                    socket.emit('err', {msg: err})
+                } else {
+                    socket.emit('roomsData', rooms)
+                }
+            })
+        }
     });
 
 
@@ -195,6 +223,47 @@ io.sockets.on('connection', function (socket) {
 
 
     });
+
+    socket.on('joinRoom',function (join) {
+        User.joinRoom(join,function (err) {
+            if (err){
+                socket.emit('err', {msg: err});
+            }else {
+                socket.join(join.room._id);
+                socket.emit('joinRoom.'+join.user._id,join);
+                socket.in(join.room._id).broadcast.emit('messageAdded',{
+                    content:join.user.name+'进入了聊天室',
+                    creator:SYSTEM,
+                    createAt: new Date(),
+                    _id: ObjectId()
+                });
+                socket.in(join.room._id).broadcast.emit('joinRoom', join)
+            }
+
+        })
+    });
+    /**
+     * 离开房间
+     * */
+    socket.on('leaveRoom',function (leave) {
+        User.leaveRoom(leave.user._id,function (err) {
+            if (err) {
+                socket.emit('err', {
+                    msg: err
+                })
+            }else {
+                socket.in(leave._roomId).broadcast.emit('messageAdded', {
+                    content: leave.user.name + '离开了聊天室',
+                    creator: SYSTEM,
+                    createAt: new Date(),
+                    _id: ObjectId()
+                });
+                socket.leave(leave._roomId);
+                socket.emit('leaveRoom', leave);
+            }
+        })
+    })
+    
     socket.on('createMessage', function (message) {
 
        var newMessage = new Message(message);
@@ -202,7 +271,8 @@ io.sockets.on('connection', function (socket) {
             if(err){
                 socket.emit('err', {msg: err});
             }else {
-                io.sockets.emit('messageAdded', result);
+                socket.in(message._roomId).broadcast.emit('messageAdded',result);
+                socket.emit('messageAdded', result);
             }
         })
     });

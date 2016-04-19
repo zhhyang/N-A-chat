@@ -6,6 +6,7 @@
 
 
 var User = require('./user');
+var Message = require('./message');
 var async = require('async');
 var mongoosedb = require('./mongoosedb');
 var Schema = mongoosedb.mongoose.Schema;
@@ -48,7 +49,7 @@ class Room{
                 var roomsData = []
                 async.each(rooms, function(room, done) {
                     var roomData = room.toObject();
-                    User.find(roomData._id,function (users) {
+                    User.find(roomData._id,function (err,users) {
                         if (err) {
                             done(err)
                         } else {
@@ -60,6 +61,37 @@ class Room{
                 }, function(err) {
                     callback(err, roomsData)
                 })
+            }
+        });
+    }
+
+    static getById(_roomId,callback){
+        roomModel.find({
+            _id:_roomId
+        },function (err,room) {
+            if (err) {
+                callback(err)
+            }else {
+                async.parallel([
+                        function(done) {
+                            User.find(_roomId , function(err, users) {
+                                done(err, users)
+                            })
+                        },
+                        function(done) {
+                            Message.find(_roomId,function (err, messages) {
+                                done(err, messages)
+                            })
+                        }
+                    ],
+                    function(err, results) {
+                        if (err) {
+                            callback(err)
+                        } else {
+                            room = {users: results[0], messages: results[1]};
+                            callback(null, room)
+                        }
+                    });
             }
         });
     }

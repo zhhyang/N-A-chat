@@ -11,7 +11,7 @@ angular.module('NAChat').config(function ($routeProvider,$locationProvider) {
         templateUrl: '/pages/rooms.html',
         controller: 'RoomsCtrl'
     }).
-    when('/room/:_roomId',{
+    when('/rooms/:_roomId',{
         templateUrl: '/pages/room.html',
         controller: 'RoomCtrl'
     }).
