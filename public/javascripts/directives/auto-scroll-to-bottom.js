@@ -9,7 +9,7 @@ angular.module('NAChat').directive('autoScrollToBottom',function () {
                     return element.children().length;
                 },
                 function() {
-                    element.scrollTop= element.scrollHeight-element.clientHeight;
+                    element[0].scrollTop= element[0].scrollHeight-element[0].clientHeight;
                 }
             );
         }
