@@ -21,10 +21,6 @@ angular.module('NAChat').controller('RoomsCtrl',function ($scope,$location,socke
         var name = $scope.searchKey;
         socket.emit('createRoom',name);
     };
-    socket.on('roomAdded', function (room) {
-        $scope._rooms.push(room)
-        $scope.searchRoom()
-    });
 
 
     $scope.enterRoom = function (room) {
@@ -37,10 +33,6 @@ angular.module('NAChat').controller('RoomsCtrl',function ($scope,$location,socke
         $location.path('/rooms/' + join.room._id)
     });
     socket.on('joinRoom', function (join) {
-        $scope.rooms.forEach(function (room) {
-            if (room._id == join.room._id) {
-                room.users.push(join.user)
-            }
-        })
+        
     })
 });

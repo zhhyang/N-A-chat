@@ -6,7 +6,6 @@ var async = require('async');
 var User = require('../models/user');
 var Message = require('../models/message');
 var Room  = require('../models/room');
-var messages = [];
 var ObjectId = require('mongoose').Schema.ObjectId;
 var SYSTEM = {
     name: 'technode机器人',
@@ -99,4 +98,57 @@ exports.getRoom = function (socket) {
         }
     });
 
+};
+
+exports.joinRoom = function (join,socket) {
+
+    User.joinRoom(join,function (err) {
+        if (err){
+            socket.emit('err', {msg: err});
+        }else {
+            socket.join(join.room._id);
+            socket.emit('joinRoom.'+join.user._id,join);
+            socket.in(join.room._id).broadcast.emit('messageAdded',{
+                content:join.user.name+'进入了聊天室',
+                creator:SYSTEM,
+                createAt: new Date(),
+                _id: ObjectId()
+            });
+            socket.in(join.room._id).broadcast.emit('joinRoom', join)
+        }
+
+    })
+};
+/**
+ * 离开房间
+ * */
+exports.leaveRoom = function (leave,socket) {
+    User.leaveRoom(leave.user._id,function (err) {
+        if (err) {
+            socket.emit('err', {
+                msg: err
+            })
+        }else {
+            socket.in(leave._roomId).broadcast.emit('messageAdded', {
+                content: leave.user.name + '离开了聊天室',
+                creator: SYSTEM,
+                createAt: new Date(),
+                _id: ObjectId()
+            });
+            socket.leave(leave._roomId);
+            socket.emit('leaveRoom', leave);
+        }
+    })
+};
+
+exports.createMessage = function (message,socket) {
+    var newMessage = new Message(message);
+    newMessage.save(function (err,result) {
+        if(err){
+            socket.emit('err', {msg: err});
+        }else {
+            socket.in(message._roomId).broadcast.emit('messageAdded',result);
+            socket.emit('messageAdded', result);
+        }
+    })
 };

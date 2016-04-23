@@ -1,17 +1,10 @@
 /**
  * Created by Freeman on 2016/4/12.
  */
-angular.module('NAChat').controller('RoomCtrl',function ($scope,$routeParams,socket) {
+angular.module('NAChat').controller('RoomCtrl',['$scope', '$routeParams', 'socket', 'server'],function ($scope,$routeParams,socket,server) {
     $scope.messages = [];
-    socket.emit('getAllRooms',{
-        _roomId:$routeParams._roomId
-    });
-    socket.on('roomData.'+$routeParams._roomId,function (room) {
-        $scope.room = room;
-    });
-    socket.on('messageAdded',function (message) {
-        $scope.room.messages.push(message);
-    });
+    server.getAllRooms($routeParams._roomId);
+    
 
     socket.on('online', function (user) {
         $scope.room.users.push(user);
@@ -28,10 +21,5 @@ angular.module('NAChat').controller('RoomCtrl',function ($scope,$routeParams,soc
             _roomId: $routeParams._roomId
         })
     });
-    socket.on('leaveRoom', function(leave) {
-        var _userId = leave.user._id;
-        $scope.room.users = $scope.room.users.filter(function(user) {
-            return user._id != _userId
-        })
-    })
+    
 });

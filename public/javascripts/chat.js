@@ -5,15 +5,7 @@ angular.module('NAChat',['ngRoute','angularMoment']).
         run(function ($window, $rootScope, $http, $location) {
 
     $window.moment.locale('zh-cn');
-    $http({
-        url: '/api/validate',
-        method: 'GET'
-    }).success(function (user) {
-        $rootScope.me = user;
-        $location.path('/rooms');
-    }).error(function (data) {
-        $location.path('/login');
-    });
+    
     
     $rootScope.logout = function () {
         $http({

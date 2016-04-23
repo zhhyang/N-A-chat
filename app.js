@@ -144,63 +144,6 @@ io.sockets.on('connection', function (socket) {
     socket.on('nachat',function (request) {
         socketApi[request.action](request.data,socket,io);
     });
-
-
-
-    
-
-    socket.on('joinRoom',function (join) {
-        User.joinRoom(join,function (err) {
-            if (err){
-                socket.emit('err', {msg: err});
-            }else {
-                socket.join(join.room._id);
-                socket.emit('joinRoom.'+join.user._id,join);
-                socket.in(join.room._id).broadcast.emit('messageAdded',{
-                    content:join.user.name+'进入了聊天室',
-                    creator:SYSTEM,
-                    createAt: new Date(),
-                    _id: ObjectId()
-                });
-                socket.in(join.room._id).broadcast.emit('joinRoom', join)
-            }
-
-        })
-    });
-    /**
-     * 离开房间
-     * */
-    socket.on('leaveRoom',function (leave) {
-        User.leaveRoom(leave.user._id,function (err) {
-            if (err) {
-                socket.emit('err', {
-                    msg: err
-                })
-            }else {
-                socket.in(leave._roomId).broadcast.emit('messageAdded', {
-                    content: leave.user.name + '离开了聊天室',
-                    creator: SYSTEM,
-                    createAt: new Date(),
-                    _id: ObjectId()
-                });
-                socket.leave(leave._roomId);
-                socket.emit('leaveRoom', leave);
-            }
-        })
-    })
-    
-    socket.on('createMessage', function (message) {
-
-       var newMessage = new Message(message);
-        newMessage.save(function (err,result) {
-            if(err){
-                socket.emit('err', {msg: err});
-            }else {
-                socket.in(message._roomId).broadcast.emit('messageAdded',result);
-                socket.emit('messageAdded', result);
-            }
-        })
-    });
 });
 /**
  * Normalize a port into a number, string, or false.
