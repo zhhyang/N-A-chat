@@ -22,5 +22,13 @@
     "connect":"*",
     "express-socket.io-session":"*",
     "async":"*"
+  },
+  "devDependencies": {
+    "gulp": "3.9.1",
+    "gulp-clean-css": "2.0.6",
+    "gulp-concat": "2.6.0",
+    "gulp-uglify": "*",
+    "gulp-rename": "1.2.2",
+    "gulp-clean":"*"
   }
 }

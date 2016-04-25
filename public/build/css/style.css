@@ -1,0 +1,29 @@
+body {
+  background: url(/images/web_wechat_login_bg28a2f7.jpg) no-repeat center;
+  background-size: cover; 
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+.room-content {
+  height: 600px;
+  background-color: #eee;
+}
+.messages {
+  height: calc(100% - 10pc);
+  padding: 10px 15px;
+  overflow-y: scroll;
+}
+
+.text{
+  height: 9pc;
+  border-top: 1px solid #ddd;
+}
+
+.text textarea {
+  padding: 10px;
+  height: 100%;
+  width: 100%;
+  border: none;
+  outline: 0;
+  font-family: Micrsofot Yahei;
+  resize: none;
+}
