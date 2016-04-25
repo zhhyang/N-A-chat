@@ -1,13 +1,13 @@
 /**
  * Created by freeman on 16-4-23.
  */
-angular.module('NAChat').factory('server',['$cacheFactory', '$q', '$http', 'socket'],function ($cacheFactory, $q, $http, socket) {
+angular.module('NAChat').factory('server',['$cacheFactory', '$q', '$http', 'socket',function ($cacheFactory, $q, $http, socket) {
     var cache = window.cache = $cacheFactory('nachat');
     socket.on('nachat',function (data) {
         switch (data.action){
             case 'roomData':
                 if(data._roomId){
-                    angular.extend(cache.get(data._roomId), data.data)
+                    angular.extend(cache.get(data._roomId), data.data);
                 }else {
                     data.data.forEach(function (room) {
                         cache.get('rooms').push(room)
@@ -17,7 +17,7 @@ angular.module('NAChat').factory('server',['$cacheFactory', '$q', '$http', 'sock
             case 'leaveRoom':
                 var leave = data.data;
                 var _userId = leave.user._id;
-                var _roomId = leave.room._id;
+                var _roomId = leave.user._roomId;
                 cache.get(_roomId).users = cache.get(_roomId).users.filter(function(user) {
                     return user._id != _userId
                 });
@@ -36,7 +36,7 @@ angular.module('NAChat').factory('server',['$cacheFactory', '$q', '$http', 'sock
             case 'joinRoom':
                 var join = data.data
                 var _userId = join.user._id;
-                var _roomId = join.user._roomId;
+                var _roomId = join.room._id;
                 if (!cache.get(_roomId)) {
                     cache.get('rooms').forEach(function (room) {
                         if (room._id === _roomId) {
@@ -57,24 +57,111 @@ angular.module('NAChat').factory('server',['$cacheFactory', '$q', '$http', 'sock
     });
 
     return {
-        validate:function () {
+        validate: function() {
+            var deferred = $q.defer();
             $http({
                 url: '/api/validate',
                 method: 'GET'
-            }).success(function (user) {
-                $rootScope.me = user;
-                $location.path('/rooms');
-            }).error(function (data) {
-                $location.path('/login');
+            }).success(function(user) {
+                angular.extend(this.getUser(), user)
+                deferred.resolve()
+            }.bind(this)).error(function(data) {
+                deferred.reject()
             });
+            return deferred.promise;
         },
-        getAllRooms:function (_roomId) {
-            socket.emit('nachat',{
-                action:'getAllRooms',
-                _roomId:_roomId
+        getUser: function() {
+            if (!cache.get('user')) {
+                cache.put('user', {})
+            }
+            return cache.get('user')
+        },
+        login:function (email) {
+            var deferred = $q.defer();
+            $http({
+                url: '/api/login',
+                method: 'POST',
+                data: {
+                    email: email
+                }
+            }).success(function(user) {
+                angular.extend(cache.get('user'), user)
+                deferred.resolve()
+            }).error(function() {
+                deferred.reject()
             });
+            return deferred.promise;
+        },
+        logout:function () {
+            var deferred = $q.defer();
+            $http({
+                url: '/api/logout',
+                method: 'GET'
+            }).success(function() {
+                var user = cache.get('user')
+                for (key in user) {
+                    if (user.hasOwnProperty(key)) {
+                        delete user[key]
+                    }
+                }
+                deferred.resolve()
+            });
+            return deferred.promise;
+        },
+        getAllRooms:function () {
+            if (!cache.get('rooms')) {
+                cache.put('rooms', [])
+                socket.emit('nachat', {
+                    action: 'getAllRooms'
+                })
+            }
+            return cache.get('rooms');
+        },
+        getRoom:function (_roomId) {
+            if (!cache.get(_roomId)) {
+                cache.put(_roomId, {
+                    users: [],
+                    messages: []
+                });
+                socket.emit('nachat', {
+                    action: 'getAllRooms',
+                    data: {
+                        _roomId: _roomId
+                    }
+                })
+            }
+            return cache.get(_roomId)
+        },
+        createRoom: function(room) {
+            socket.emit('nachat', {
+                action: 'createRoom',
+                data: room
+            })
+        },
+
+        joinRoom:function (join) {
+            socket.emit('nachat', {
+                action: 'joinRoom',
+                data: join
+            })
+        },
+        leaveRoom:function (leave) {
+            socket.emit('nachat', {
+                action:'leaveRoom',
+                data:leave
+            })
+        },
+        createRoom: function(room) {
+            socket.emit('nachat', {
+                action: 'createRoom',
+                data: room
+            })
+        },
+        createMessage: function(message) {
+            socket.emit('nachat', {
+                action: 'createMessage',
+                data: message
+            })
         }
-
-
     }
-});
+}]);

@@ -2,23 +2,25 @@
  * Created by Freeman on 2016/4/12.
  */
 angular.module('NAChat',['ngRoute','angularMoment']).
-        run(function ($window, $rootScope, $http, $location) {
+        run(['$window', '$rootScope', '$location', 'server',function ($window, $rootScope, $location, server) {
 
     $window.moment.locale('zh-cn');
-    
-    
+
+
+    server.validate().then(function () {
+        if ($location.path() === '/login') {
+            $location.path('/rooms')
+        }
+    },function () {
+        $location.path('/login')
+    });
+
+    $rootScope.me = server.getUser();
+
     $rootScope.logout = function () {
-        $http({
-            url: '/api/logout',
-            method: 'GET'
-        }).success(function () {
-            $rootScope.me = null;
+        server.logout().then(function () {
             $location.path('/login')
-        })
+        });
     };
     
-    $rootScope.$on('login', function (evt, me) {
-        $rootScope.me = me;
-    })
-    
-});
+}]);

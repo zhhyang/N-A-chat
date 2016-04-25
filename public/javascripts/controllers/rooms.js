@@ -1,38 +1,29 @@
 /**
  * Created by Freeman on 2016/4/14.
  */
-angular.module('NAChat').controller('RoomsCtrl',function ($scope,$location,socket) {
-
-    socket.emit('getAllRooms')
-    socket.on('roomsData', function (rooms) {
-        $scope.rooms = $scope._rooms = rooms
-    });
+angular.module('NAChat').controller('RoomsCtrl',['$scope', '$location','socket', 'server',function ($scope,$location,socket,server) {
+    var rooms = server.getAllRooms();
     $scope.searchRoom = function () {
         if ($scope.searchKey) {
-            $scope.rooms = $scope._rooms.filter(function (room) {
+            $scope.filteredRooms = $scope.rooms.filter(function(room) {
                 return room.name.indexOf($scope.searchKey) > -1
             })
         } else {
-            $scope.rooms = $scope._rooms
+            $scope.filteredRooms = $scope.rooms;
         }
 
     };
     $scope.createRoom = function () {
-        var name = $scope.searchKey;
-        socket.emit('createRoom',name);
+        server.createRoom({
+            name:$scope.searchKey
+        });
     };
-
+    $scope.filteredRooms = $scope.rooms = rooms;
 
     $scope.enterRoom = function (room) {
-        socket.emit('joinRoom',{
-            user:$scope.me,
-            room:room
-        })
+        $location.path('/rooms/' + room._id)
     };
-    socket.on('joinRoom.' + $scope.me._id, function (join) {
-        $location.path('/rooms/' + join.room._id)
+    $scope.$watchCollection('rooms', function() {
+        $scope.searchRoom();
     });
-    socket.on('joinRoom', function (join) {
-        
-    })
-});
+}]);

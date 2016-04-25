@@ -22,7 +22,7 @@
         </li>
     </ul>
 </div>
-<div class="row no-room" ng-show="rooms.length == 0 && searchKey">
+<div class="row no-room" ng-show="filteredRooms.length == 0 && searchKey">
     <form class="form-inline no-room-form">
         <div class="form-group">
             没找到你想要的房间<strong class="label label-default no-room-label">{{searchKey}}</strong>，<button class="btn btn-warning" ng-click="createRoom()">点击新建</button>

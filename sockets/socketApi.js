@@ -50,13 +50,13 @@ exports.disconnect = function (socket) {
 /**
  * 创建新房间
  * */
-exports.createRoom = function (name,socket) {
-    var newRoom = new Room(name);
+exports.createRoom = function (data,socket) {
+    var newRoom = new Room(data.name);
     newRoom.save(function (err, room) {
         if (err) {
             socket.emit('err', {msg: err})
         } else {
-            socket.emit('roomAdded', room)
+            socket.emit('nachat',{action:'roomAdded',data:room})
         }
     })
 };
@@ -69,7 +69,11 @@ exports.getAllRooms = function (data,socket) {
                     msg: err
                 })
             } else {
-                socket.emit('roomData.' + data._roomId, room)
+                socket.emit('nachat',{
+                    action:'roomData',
+                    _roomId: data._roomId,
+                    data:room
+                })
             }
         })
     }else {
@@ -77,7 +81,10 @@ exports.getAllRooms = function (data,socket) {
             if (err) {
                 socket.emit('err', {msg: err})
             } else {
-                socket.emit('roomsData', rooms)
+                socket.emit('nachat',{
+                    action:'roomData',
+                    data:rooms
+                })
             }
         })
     }
@@ -107,14 +114,14 @@ exports.joinRoom = function (join,socket) {
             socket.emit('err', {msg: err});
         }else {
             socket.join(join.room._id);
-            socket.emit('joinRoom.'+join.user._id,join);
-            socket.in(join.room._id).broadcast.emit('messageAdded',{
+            socket.emit('nachat',{action:'joinRoom',data:join});
+            socket.in(join.room._id).broadcast.emit('nachat',{action:'messageAdded',data:{
                 content:join.user.name+'进入了聊天室',
                 creator:SYSTEM,
                 createAt: new Date(),
                 _id: ObjectId()
-            });
-            socket.in(join.room._id).broadcast.emit('joinRoom', join)
+            }});
+            socket.in(join.room._id).broadcast.emit('nachat',{action:'joinRoom',data:join})
         }
 
     })
@@ -129,14 +136,14 @@ exports.leaveRoom = function (leave,socket) {
                 msg: err
             })
         }else {
-            socket.in(leave._roomId).broadcast.emit('messageAdded', {
+            socket.in(leave._roomId).broadcast.emit('nachat',{action:'messageAdded',data: {
                 content: leave.user.name + '离开了聊天室',
                 creator: SYSTEM,
                 createAt: new Date(),
                 _id: ObjectId()
-            });
+            }});
             socket.leave(leave._roomId);
-            socket.emit('leaveRoom', leave);
+            socket.emit('nachat',{action:'leaveRoom', data:leave});
         }
     })
 };
@@ -147,8 +154,8 @@ exports.createMessage = function (message,socket) {
         if(err){
             socket.emit('err', {msg: err});
         }else {
-            socket.in(message._roomId).broadcast.emit('messageAdded',result);
-            socket.emit('messageAdded', result);
+            socket.in(message._roomId).broadcast.emit('nachat',{action:'messageAdded',data:result});
+            socket.emit('nachat',{action:'messageAdded',data:result});
         }
     })
 };

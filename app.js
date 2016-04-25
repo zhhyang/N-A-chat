@@ -142,6 +142,7 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('nachat',function (request) {
+        console.log('action:'+request.action);
         socketApi[request.action](request.data,socket,io);
     });
 });

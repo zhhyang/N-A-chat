@@ -1,19 +1,12 @@
 /**
  * Created by Freeman on 2016/4/12.
  */
-angular.module('NAChat').controller('LoginCtrl',function ($scope,$http,$location) {
+angular.module('NAChat').controller('LoginCtrl',['$scope', '$location', 'server',function ($scope,$location,server) {
     $scope.login = function () {
-        $http({
-            url: '/api/login',
-            method: 'POST',
-            data: {
-                email: $scope.email
-            }
-        }).success(function (user) {
-            $scope.$emit('login', user);
-            $location.path('/rooms')
-        }).error(function (data) {
-            $location.path('/login')
+        server.login($scope.email).then(function () {
+            $location.path('/rooms');
+        },function () {
+            $location.path('/login');
         })
     }
-});
+}]);
